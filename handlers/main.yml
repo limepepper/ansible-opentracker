@@ -1,0 +1,7 @@
+---
+# handlers file for limepepper.opentracker
+
+- name: restart opentracker
+  systemd:
+    state: restarted
+    name: opentracker

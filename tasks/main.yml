@@ -1,0 +1,9 @@
+---
+
+- tags: [ opentracker ]
+  become: yes
+  block:
+
+    - include_tasks: install/main.yml
+      tags: always
+      

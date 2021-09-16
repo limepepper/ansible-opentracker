@@ -1,0 +1,82 @@
+---
+
+- tags: [ opentracker ]
+  block:
+
+    - name: create the "{{ opentracker_group }}" group
+      group:
+        name: "{{ opentracker_group }}"
+        state: present
+
+    - name: create opentracker user
+      user:
+        name: "{{ opentracker_user }}"
+        comment: "OpenTracker Service"
+        shell: /bin/false
+        group: "{{ opentracker_group }}"
+        home: "{{ opentracker_home }}"
+
+    - name: create the /etc/opentracker directory
+      file:
+        name: "{{ opentracker_config }}"
+        state: directory
+
+    - name: general packages for opentracker
+      package:
+        name:
+          - libowfat-dev
+
+    - name: install the opentracker repo
+      git:
+        repo: git://erdgeist.org/opentracker
+        dest: "{{ opentracker_home }}"
+        update: no
+      notify:
+        - restart opentracker
+
+    - name: restrict tracker to specific list of hashes
+      ansible.builtin.lineinfile:
+        path: "{{ opentracker_home }}/Makefile"
+        regexp: 'FEATURES\+=-DWANT_ACCESSLIST_WHITE'
+        line: 'FEATURES+=-DWANT_ACCESSLIST_WHITE'
+      notify:
+        - restart opentracker
+
+    - name: restrict access to stats
+      ansible.builtin.lineinfile:
+        path: "{{ opentracker_home }}/Makefile"
+        regexp: 'WANT_RESTRICT_STATS'
+        line: 'FEATURES+=-DWANT_RESTRICT_STATS'
+      notify:
+        - restart opentracker
+
+    - name: build opentracker
+      command: make
+      args:
+        chdir: /opt/opentracker
+        creates: /opt/opentracker/opentracker
+
+    - name: opentracker config
+      template:
+        src: opentracker.conf
+        dest: "{{ opentracker_config }}/opentracker.conf"
+        owner: "{{ opentracker_user }}"
+        group: "{{ opentracker_group }}"
+        mode: 0644
+      notify:
+        - restart opentracker
+
+    - name: install the opentracker systemd service
+      template:
+        src: opentracker.service
+        dest: /etc/systemd/system/opentracker.service
+        mode: 0755
+        owner: root
+        group: root
+
+    - name: start opentracker
+      systemd:
+        state: started
+        enabled: yes
+        name: "{{ opentracker_service_name }}"
+      register: opentracker_systemd_start

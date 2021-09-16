@@ -1,0 +1,19 @@
+
+
+[Unit]
+Description=opentracker
+Wants=network-online.target
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/opentracker
+User=opentracker
+Group=opentracker
+Type=exec
+ExecStart=/opt/opentracker/opentracker \
+    -f {{ opentracker_config }}/opentracker.conf
+RestartSec=15
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

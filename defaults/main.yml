@@ -1,0 +1,9 @@
+---
+
+opentracker_port: 6969
+opentracker_user: opentracker
+opentracker_group: opentracker
+opentracker_service_name: opentracker
+opentracker_trusted_ip: 127.0.0.1
+opentracker_config: /etc/opentracker
+opentracker_home: /opt/opentracker
